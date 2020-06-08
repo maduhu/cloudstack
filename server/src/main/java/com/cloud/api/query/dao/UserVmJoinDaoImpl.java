@@ -331,9 +331,9 @@ public class UserVmJoinDaoImpl extends GenericDaoBaseWithTagInformation<UserVmJo
                 userVmResponse.setBootType("Bios");
                 userVmResponse.setBootMode("legacy");
             }
-            // Remove denylisted settings if user is not admin
+            // Remove deny listed settings if user is not admin
             if (caller.getType() != Account.ACCOUNT_TYPE_ADMIN) {
-                String[] userVmSettingsToHide = QueryService.UserVMDenylistedDetails.value().split(",");
+                String[] userVmSettingsToHide = QueryService.UserVMDenyListedDetails.value().split(",");
                 for (String key : userVmSettingsToHide) {
                     resourceDetails.remove(key.trim());
                 }
