@@ -98,6 +98,9 @@ public interface QueryService {
             "user.vm.blacklisted.details", "rootdisksize, cpuOvercommitRatio, memoryOvercommitRatio, Message.ReservedCapacityFreed.Flag",
             "Determines whether users can view certain VM settings. When set to empty, default value used is: rootdisksize, cpuOvercommitRatio, memoryOvercommitRatio, Message.ReservedCapacityFreed.Flag.", true);
 
+    static final ConfigKey<String> DomainAdminWhitelistedConfigurations = new ConfigKey<String>("Advanced", String.class,
+            "domain.admin.whitelisted.config", "", "Determines which domain and account level configurations the domain admin is able to change", true);
+
     static final ConfigKey<String> UserVMReadOnlyUIDetails = new ConfigKey<String>("Advanced", String.class,
             "user.vm.readonly.ui.details", "dataDiskController, rootDiskController",
             "List of UI read-only VM settings/details as comma separated string", true);

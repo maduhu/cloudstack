@@ -220,3 +220,6 @@ ALTER VIEW `cloud`.`image_store_view` AS
         `cloud`.`data_center` ON image_store.data_center_id = data_center.id
             left join
         `cloud`.`image_store_details` ON image_store_details.store_id = image_store.id;
+
+INSERT INTO `cloud`.`role_permissions` (`uuid`, `role_id`, `rule`, `permission`, `sort_order`) values (UUID(), 3, 'listConfigurations', 'ALLOW', 303) ON DUPLICATE KEY UPDATE rule=rule;
+INSERT INTO `cloud`.`role_permissions` (`uuid`, `role_id`, `rule`, `permission`, `sort_order`) values (UUID(), 3, 'updateConfiguration', 'ALLOW', 304) ON DUPLICATE KEY UPDATE rule=rule;
