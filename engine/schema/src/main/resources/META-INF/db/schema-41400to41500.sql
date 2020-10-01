@@ -195,7 +195,6 @@ INSERT IGNORE INTO `cloud`.`hypervisor_capabilities`(uuid, hypervisor_type, hype
 -- Copy XenServer 8.0 hypervisor guest OS mappings to XenServer8.1
 INSERT IGNORE INTO `cloud`.`guest_os_hypervisor` (uuid,hypervisor_type, hypervisor_version, guest_os_name, guest_os_id, created, is_user_defined) SELECT UUID(),'Xenserver', '8.1.0', guest_os_name, guest_os_id, utc_timestamp(), 0 FROM `cloud`.`guest_os_hypervisor` WHERE hypervisor_type='Xenserver' AND hypervisor_version='8.0.0';
 
-<<<<<<< HEAD
 ALTER TABLE `cloud`.`image_store` ADD COLUMN `readonly` boolean DEFAULT false COMMENT 'defines status of image store';
 
 ALTER VIEW `cloud`.`image_store_view` AS
@@ -221,7 +220,6 @@ ALTER VIEW `cloud`.`image_store_view` AS
         `cloud`.`data_center` ON image_store.data_center_id = data_center.id
             left join
         `cloud`.`image_store_details` ON image_store_details.store_id = image_store.id;
-=======
+
 -- TODO : Move to 416
 ALTER TABLE `cloud`.`kubernetes_cluster_vm_map` ADD COLUMN `is_master` tinyint(1) NOT NULL DEFAULT '0';
->>>>>>> Adding isMaster in KubernetesClusterVmMap
