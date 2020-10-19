@@ -318,8 +318,8 @@ import com.vmware.vim25.VirtualEthernetCardDistributedVirtualPortBackingInfo;
 import com.vmware.vim25.VirtualEthernetCardNetworkBackingInfo;
 import com.vmware.vim25.VirtualEthernetCardOpaqueNetworkBackingInfo;
 import com.vmware.vim25.VirtualIDEController;
-import com.vmware.vim25.VirtualMachineConfigSpec;
 import com.vmware.vim25.VirtualMachineBootOptions;
+import com.vmware.vim25.VirtualMachineConfigSpec;
 import com.vmware.vim25.VirtualMachineFileInfo;
 import com.vmware.vim25.VirtualMachineFileLayoutEx;
 import com.vmware.vim25.VirtualMachineFileLayoutExFileInfo;
@@ -763,7 +763,7 @@ public class VmwareResource implements StoragePoolResource, ServerResource, Vmwa
                 s_logger.info("Create worker VM " + vmName);
 
                 // OfflineVmwareMigration: 2. create the worker with access to the data(store)
-                vmMo = HypervisorHostHelper.createWorkerVM(hyperHost, dsMo, vmName);
+                vmMo = HypervisorHostHelper.createWorkerVM(hyperHost, dsMo, vmName, null);
 
                 if (vmMo == null) {
                     // OfflineVmwareMigration: don't throw a general Exception but think of a specific one
@@ -1180,7 +1180,7 @@ public class VmwareResource implements StoragePoolResource, ServerResource, Vmwa
             }
 
             // find a usable device number in VMware environment
-            VirtualDevice[] nicDevices = vmMo.getNicDevices();
+            VirtualDevice[] nicDevices = vmMo.getSortedNicDevices();
             int deviceNumber = -1;
             for (VirtualDevice device : nicDevices) {
                 if (device.getUnitNumber() > deviceNumber)
@@ -1380,7 +1380,7 @@ public class VmwareResource implements StoragePoolResource, ServerResource, Vmwa
         int nicIndex = allocPublicNicIndex(vmMo);
 
         try {
-            VirtualDevice[] nicDevices = vmMo.getNicDevices();
+            VirtualDevice[] nicDevices = vmMo.getSortedNicDevices();
 
             VirtualEthernetCard device = (VirtualEthernetCard) nicDevices[nicIndex];
 
@@ -1634,7 +1634,7 @@ public class VmwareResource implements StoragePoolResource, ServerResource, Vmwa
             }
 
             // Check increment is multiple of increment size
-            long reminder = requestedMaxMemoryInMb % hotaddIncrementSizeInMb;
+            long reminder = hotaddIncrementSizeInMb > 0 ? requestedMaxMemoryInMb % hotaddIncrementSizeInMb : 0;
             if (reminder != 0) {
                 requestedMaxMemoryInMb = requestedMaxMemoryInMb + hotaddIncrementSizeInMb - reminder;
             }
@@ -4595,7 +4595,7 @@ public class VmwareResource implements StoragePoolResource, ServerResource, Vmwa
             dsMo = new DatastoreMO(hyperHost.getContext(), morSourceDS);
             s_logger.info("Create worker VM " + vmName);
             // OfflineVmwareMigration: 2. create the worker with access to the data(store)
-            vmMo = HypervisorHostHelper.createWorkerVM(hyperHost, dsMo, vmName);
+            vmMo = HypervisorHostHelper.createWorkerVM(hyperHost, dsMo, vmName, null);
             if (vmMo == null) {
                 // OfflineVmwareMigration: don't throw a general Exception but think of a specific one
                 throw new CloudRuntimeException("Unable to create a worker VM for volume operation");
@@ -6785,6 +6785,7 @@ public class VmwareResource implements StoragePoolResource, ServerResource, Vmwa
                 if (s_logger.isInfoEnabled()) {
                     s_logger.info("Destroy template volume " + vol.getPath());
                 }
+                vmMo.markAsVirtualMachine(hyperHost.getHyperHostOwnerResourcePool(), hyperHost.getMor());
                 vmMo.destroy();
             } else {
                 if (s_logger.isInfoEnabled()) {
@@ -7135,7 +7136,7 @@ public class VmwareResource implements StoragePoolResource, ServerResource, Vmwa
             VmwareHypervisorHost hyperHost = getHyperHost(context);
 
             String vmName = cmd.getInstanceName();
-            List<VirtualMachineMO> vmMos = hyperHost.listVmsOnHyperHost(vmName);
+            List<VirtualMachineMO> vmMos = hyperHost.listVmsOnHyperHostWithHypervisorName(vmName);
 
             for (VirtualMachineMO vmMo : vmMos) {
                 if (vmMo == null) {

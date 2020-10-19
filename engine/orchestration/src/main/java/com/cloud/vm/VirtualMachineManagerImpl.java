@@ -1658,6 +1658,9 @@ public class VirtualMachineManagerImpl extends ManagerBase implements VirtualMac
                 }
 
                 guru.finalizeStop(profile, answer);
+                final UserVmVO userVm = _userVmDao.findById(vm.getId());
+                userVm.setPowerState(PowerState.PowerOff);
+                _userVmDao.update(userVm.getId(), userVm);
             } else {
                 s_logger.error("Invalid answer received in response to a StopCommand for " + vm.getInstanceName());
                 return false;
@@ -4496,7 +4499,8 @@ public class VirtualMachineManagerImpl extends ManagerBase implements VirtualMac
         return new ConfigKey<?>[] {ClusterDeltaSyncInterval, StartRetry, VmDestroyForcestop, VmOpCancelInterval, VmOpCleanupInterval, VmOpCleanupWait,
             VmOpLockStateRetry,
             VmOpWaitInterval, ExecuteInSequence, VmJobCheckInterval, VmJobTimeout, VmJobStateReportInterval, VmConfigDriveLabel, VmConfigDriveOnPrimaryPool, HaVmRestartHostUp,
-            ResoureCountRunningVMsonly, AllowExposeHypervisorHostname, AllowExposeHypervisorHostnameAccountLevel };
+            ResoureCountRunningVMsonly, AllowExposeHypervisorHostname, AllowExposeHypervisorHostnameAccountLevel,
+            VmServiceOfferingMaxCPUCores, VmServiceOfferingMaxRAMSize };
     }
 
     public List<StoragePoolAllocator> getStoragePoolAllocators() {
