@@ -117,6 +117,8 @@ import com.cloud.network.NetworkService;
 import com.cloud.network.Networks;
 import com.cloud.network.PhysicalNetwork;
 import com.cloud.network.dao.FirewallRulesDao;
+import com.cloud.network.dao.IPAddressDao;
+import com.cloud.network.dao.IPAddressVO;
 import com.cloud.network.dao.NetworkDao;
 import com.cloud.network.dao.NetworkVO;
 import com.cloud.network.dao.PhysicalNetworkDao;
@@ -233,6 +235,8 @@ public class KubernetesClusterManagerImpl extends ManagerBase implements Kuberne
     protected NetworkOrchestrationService networkMgr;
     @Inject
     protected NetworkDao networkDao;
+    @Inject
+    protected IPAddressDao ipAddressDao;
     @Inject
     protected CapacityManager capacityManager;
     @Inject
@@ -667,6 +671,13 @@ public class KubernetesClusterManagerImpl extends ManagerBase implements Kuberne
         response.setEndpoint(kubernetesCluster.getEndpoint());
         response.setNetworkId(ntwk.getUuid());
         response.setAssociatedNetworkName(ntwk.getName());
+        if (ntwk.getGuestType() == Network.GuestType.Isolated) {
+            List<IPAddressVO> ipAddresses = ipAddressDao.listByAssociatedNetwork(ntwk.getId(), true);
+            if (ipAddresses != null && ipAddresses.size() == 1) {
+                response.setIpAddress(ipAddresses.get(0).getAddress().addr());
+                response.setIpAddressId(ipAddresses.get(0).getUuid());
+            }
+        }
         List<UserVmResponse> vmIds = new ArrayList<UserVmResponse>();
         List<KubernetesClusterVmMapVO> vmList = kubernetesClusterVmMapDao.listByClusterId(kubernetesCluster.getId());
         ResponseView respView = ResponseView.Restricted;
