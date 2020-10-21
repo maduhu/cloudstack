@@ -222,8 +222,8 @@ ALTER VIEW `cloud`.`image_store_view` AS
         `cloud`.`image_store_details` ON image_store_details.store_id = image_store.id;
 
 -- TODO : Move to 416
-ALTER TABLE `cloud`.`kubernetes_cluster` ADD COLUMN `autoscaling_enabled` tinyint(1) NOT NULL DEFAULT '0';
+ALTER TABLE `cloud`.`kubernetes_cluster` ADD COLUMN `autoscaling_enabled` tinyint(1) unsigned NOT NULL DEFAULT 0;
 ALTER TABLE `cloud`.`kubernetes_cluster` ADD COLUMN `minsize` bigint;
 ALTER TABLE `cloud`.`kubernetes_cluster` ADD COLUMN `maxsize` bigint;
 
-ALTER TABLE `cloud`.`kubernetes_cluster_vm_map` ADD COLUMN `is_master` tinyint(1) NOT NULL DEFAULT '0';
+ALTER TABLE `cloud`.`kubernetes_cluster_vm_map` ADD COLUMN `is_master` tinyint(1) unsigned NOT NULL DEFAULT 0;
