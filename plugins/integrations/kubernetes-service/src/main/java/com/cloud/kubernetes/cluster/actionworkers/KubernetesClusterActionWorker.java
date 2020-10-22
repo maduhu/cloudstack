@@ -387,6 +387,7 @@ public class KubernetesClusterActionWorker {
     }
 
     protected boolean createSecret(String[] keys) {
+        // TODO : Make this into a secret file. Maybe add something in the yamls for it
         File pkFile = getManagementServerSshPublicKeyFile();
         Pair<String, Integer> publicIpSshPort = getKubernetesClusterServerIpSshPort(null);
         publicIpAddress = publicIpSshPort.first();

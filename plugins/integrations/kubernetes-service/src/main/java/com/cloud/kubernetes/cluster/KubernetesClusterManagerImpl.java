@@ -26,6 +26,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -137,8 +138,9 @@ import com.cloud.user.AccountService;
 import com.cloud.user.SSHKeyPairVO;
 import com.cloud.user.User;
 import com.cloud.user.UserAccount;
-import com.cloud.user.dao.AccountDao;
+import com.cloud.user.UserVO;
 import com.cloud.user.dao.SSHKeyPairDao;
+import com.cloud.user.dao.UserDao;
 import com.cloud.utils.Pair;
 import com.cloud.utils.Ternary;
 import com.cloud.utils.component.ComponentContext;
@@ -173,8 +175,6 @@ public class KubernetesClusterManagerImpl extends ManagerBase implements Kuberne
     ScheduledExecutorService _gcExecutor;
     ScheduledExecutorService _stateScanner;
 
-    Account kubeadmin;
-
     @Inject
     public KubernetesClusterDao kubernetesClusterDao;
     @Inject
@@ -200,7 +200,7 @@ public class KubernetesClusterManagerImpl extends ManagerBase implements Kuberne
     @Inject
     protected TemplateJoinDao templateJoinDao;
     @Inject
-    protected AccountDao accountDao;
+    protected UserDao userDao;
     @Inject
     protected AccountService accountService;
     @Inject
@@ -629,7 +629,7 @@ public class KubernetesClusterManagerImpl extends ManagerBase implements Kuberne
                 response.setIpAddressId(ipAddresses.get(0).getUuid());
             }
         }
-        List<UserVmResponse> vmIds = new ArrayList<UserVmResponse>();
+        List<UserVmResponse> vms = new ArrayList<UserVmResponse>();
         List<KubernetesClusterVmMapVO> vmList = kubernetesClusterVmMapDao.listByClusterId(kubernetesCluster.getId());
         ResponseView respView = ResponseView.Restricted;
         Account caller = CallContext.current().getCallingAccount();
@@ -642,15 +642,12 @@ public class KubernetesClusterManagerImpl extends ManagerBase implements Kuberne
                 if (userVM != null) {
                     UserVmResponse vmResponse = ApiDBUtils.newUserVmResponse(respView, "virtualmachine", userVM,
                         EnumSet.of(VMDetails.nics), caller);
-                    vmIds.add(vmResponse);
+                    vms.add(vmResponse);
                 }
             }
         }
-        response.setVirtualMachineIds(vmIds);
-        Boolean isAutoscalingEnabled = kubernetesCluster.getAutoscalingEnabled();
-        if (isAutoscalingEnabled != null) {
-            response.setAutoscalingEnabled(isAutoscalingEnabled);
-        }
+        response.setVirtualMachineIds(vms);
+        response.setAutoscalingEnabled(kubernetesCluster.getAutoscalingEnabled());
         response.setMinSize(kubernetesCluster.getMinSize());
         response.setMaxSize(kubernetesCluster.getMaxSize());
         return response;
@@ -1281,11 +1278,13 @@ public class KubernetesClusterManagerImpl extends ManagerBase implements Kuberne
 
     private String[] getServiceUserKeys() {
         Account caller = CallContext.current().getCallingAccount();
-        String username = caller.getAccountName() + "-kubeadmin";
+        String username = caller.getAccountName() + "-" + KUBEADMIN_ACCOUNT_NAME;
         UserAccount kubeadmin = accountService.getActiveUserAccount(username, caller.getDomainId());
         String[] keys = null;
         if (kubeadmin == null) {
-            User kube = accountService.createUser(username, "password", "kube", "admin", "kubeadmin", null, caller.getAccountName(), caller.getDomainId(), null);
+            User kube = userDao.persist(new UserVO(caller.getAccountId(), username, UUID.randomUUID().toString(), "kube", "admin", "kubeadmin",
+                null, UUID.randomUUID().toString(), User.Source.UNKNOWN));
+            // User kube = accountService.createUser(username, "password", "kube", "admin", "kubeadmin", null, caller.getAccountName(), caller.getDomainId(), null);
             keys = accountService.createApiKeyAndSecretKey(kube.getId());
         } else {
             String apiKey = kubeadmin.getApiKey();
